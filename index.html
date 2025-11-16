@@ -210,12 +210,10 @@
       ];
       const score = parseFloat(document.getElementById('score').value);
       const groups = ['UK', 'Overseas', 'China'];
-
       if (isNaN(score) || score < 1 || score > 9) {
         document.getElementById('results').innerHTML = '<p>Please enter a valid scaled score between 1.0 and 9.0.</p>';
         return;
       }
-
       let html = '<h2>Results for score ' + score.toFixed(1) + '</h2>';
       html += '<table><tr><th>Group</th>';
       selectedModules.forEach(key => {
@@ -234,7 +232,6 @@
       html += '</table>';
       document.getElementById('results').innerHTML = html;
     }
-
     calculate();
   </script>
 </body>
