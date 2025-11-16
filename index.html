@@ -101,7 +101,7 @@
 <body>
   <div class="container">
     <h1>ESAT Percentile Calculator</h1>
-    <div class="subtitle">Choose up to three modules and enter a scaled score to see percentile estimates for UK, Overseas and China.</div>
+    <div class="subtitle">Choose up to three modules and enter three scaled scores (1.0–9.0) to see percentile estimates for UK, Overseas, China and an overall group.</div>
     <div class="row">
       <div class="field">
         <label for="module1">Module 1</label>
@@ -114,6 +114,10 @@
         </select>
       </div>
       <div class="field">
+        <label for="score1">Score 1 (1.0 – 9.0)</label>
+        <input type="number" id="score1" step="0.1" min="1" max="9" value="4.5" />
+      </div>
+      <div class="field">
         <label for="module2">Module 2</label>
         <select id="module2">
           <option value="maths1">Mathematics 1</option>
@@ -122,6 +126,10 @@
           <option value="chemistry">Chemistry</option>
           <option value="physics">Physics</option>
         </select>
+      </div>
+      <div class="field">
+        <label for="score2">Score 2 (1.0 – 9.0)</label>
+        <input type="number" id="score2" step="0.1" min="1" max="9" value="4.5" />
       </div>
       <div class="field">
         <label for="module3">Module 3</label>
@@ -134,8 +142,8 @@
         </select>
       </div>
       <div class="field">
-        <label for="score">Scaled Score (1.0 – 9.0)</label>
-        <input type="number" id="score" step="0.1" min="1" max="9" value="4.5" />
+        <label for="score3">Score 3 (1.0 – 9.0)</label>
+        <input type="number" id="score3" step="0.1" min="1" max="9" value="4.5" />
       </div>
       <div class="field" style="align-self:flex-end;">
         <button onclick="calculate()">Calculate</button>
@@ -143,40 +151,40 @@
     </div>
     <div id="results"></div>
     <div class="note">
-      Percentiles are estimated by linear interpolation using ESAT Technical Report 2024–25 Tables 8 &amp; 9. Extrapolation is used below 25th and above 90th percentile anchor points.
+      Percentiles are estimated by linear interpolation using ESAT Technical Report 2024–25 Tables 8 & 9. Extrapolation is used below the 25th and above the 90th percentile anchor points. The “Overall” group uses the average of the UK, Overseas and China percentile anchor scores.
     </div>
   </div>
   <script>
     const data = {
       maths1: {
         label: "Mathematics 1",
-        UK: { p25: 3.1, p50: 3.9, p75: 4.8, p90: 5.6 },
+        UK:       { p25: 3.1, p50: 3.9, p75: 4.8, p90: 5.6 },
         Overseas: { p25: 4.0, p50: 5.1, p75: 6.4, p90: 8.0 },
-        China: { p25: 4.7, p50: 5.8, p75: 7.1, p90: 8.5 }
+        China:    { p25: 4.7, p50: 5.8, p75: 7.1, p90: 8.5 }
       },
       maths2: {
         label: "Mathematics 2",
-        UK: { p25: 3.1, p50: 4.1, p75: 5.0, p90: 5.7 },
+        UK:       { p25: 3.1, p50: 4.1, p75: 5.0, p90: 5.7 },
         Overseas: { p25: 3.8, p50: 4.9, p75: 6.3, p90: 7.6 },
-        China: { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.2 }
+        China:    { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.2 }
       },
       biology: {
         label: "Biology",
-        UK: { p25: 3.6, p50: 4.5, p75: 5.4, p90: 7.0 },
+        UK:       { p25: 3.6, p50: 4.5, p75: 5.4, p90: 7.0 },
         Overseas: { p25: 3.6, p50: 4.9, p75: 5.9, p90: 7.0 },
-        China: { p25: 4.0, p50: 5.0, p75: 6.4, p90: 7.6 }
+        China:    { p25: 4.0, p50: 5.0, p75: 6.4, p90: 7.6 }
       },
       chemistry: {
         label: "Chemistry",
-        UK: { p25: 3.4, p50: 4.4, p75: 5.2, p90: 6.2 },
+        UK:       { p25: 3.4, p50: 4.4, p75: 5.2, p90: 6.2 },
         Overseas: { p25: 3.8, p50: 4.9, p75: 6.4, p90: 7.6 },
-        China: { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.2 }
+        China:    { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.2 }
       },
       physics: {
         label: "Physics",
-        UK: { p25: 3.2, p50: 4.1, p75: 5.0, p90: 6.0 },
+        UK:       { p25: 3.2, p50: 4.1, p75: 5.0, p90: 6.0 },
         Overseas: { p25: 3.8, p50: 4.9, p75: 6.2, p90: 7.5 },
-        China: { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.0 }
+        China:    { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.0 }
       }
     };
 
@@ -191,7 +199,7 @@
         return Math.max(0, 25 * (score / pts[0].s));
       }
       for (let i = 0; i < pts.length - 1; i++) {
-        const low = pts[i];
+        const low  = pts[i];
         const high = pts[i + 1];
         if (score >= low.s && score <= high.s) {
           return low.p + (score - low.s) * (high.p - low.p) / (high.s - low.s);
@@ -203,28 +211,47 @@
     }
 
     function calculate() {
-      const selectedModules = [
+      const modules = [
         document.getElementById('module1').value,
         document.getElementById('module2').value,
         document.getElementById('module3').value
       ];
-      const score = parseFloat(document.getElementById('score').value);
-      const groups = ['UK', 'Overseas', 'China'];
-      if (isNaN(score) || score < 1 || score > 9) {
-        document.getElementById('results').innerHTML = '<p>Please enter a valid scaled score between 1.0 and 9.0.</p>';
-        return;
+      const scores = [
+        parseFloat(document.getElementById('score1').value),
+        parseFloat(document.getElementById('score2').value),
+        parseFloat(document.getElementById('score3').value)
+      ];
+      // Validate scores
+      for (const s of scores) {
+        if (isNaN(s) || s < 1 || s > 9) {
+          document.getElementById('results').innerHTML = '<p>Please enter valid scaled scores between 1.0 and 9.0.</p>';
+          return;
+        }
       }
-      let html = '<h2>Results for score ' + score.toFixed(1) + '</h2>';
+      const groups = ['Overall', 'UK', 'Overseas', 'China'];
+      let html = '<h2>Results</h2>';
       html += '<table><tr><th>Group</th>';
-      selectedModules.forEach(key => {
-        const label = data[key].label;
-        html += '<th>' + label + '</th>';
+      modules.forEach(key => {
+        html += '<th>' + data[key].label + '</th>';
       });
       html += '</tr>';
       groups.forEach(group => {
         html += '<tr><td>' + group + '</td>';
-        selectedModules.forEach(key => {
-          const pct = interp(score, data[key][group]);
+        modules.forEach((key, idx) => {
+          const sc = scores[idx];
+          let thresholds;
+          if (group === 'Overall') {
+            const d = data[key];
+            thresholds = {
+              p25: (d.UK.p25 + d.Overseas.p25 + d.China.p25) / 3,
+              p50: (d.UK.p50 + d.Overseas.p50 + d.China.p50) / 3,
+              p75: (d.UK.p75 + d.Overseas.p75 + d.China.p75) / 3,
+              p90: (d.UK.p90 + d.Overseas.p90 + d.China.p90) / 3
+            };
+          } else {
+            thresholds = data[key][group];
+          }
+          const pct = interp(sc, thresholds);
           html += '<td class="percent">' + pct.toFixed(1) + '%</td>';
         });
         html += '</tr>';
