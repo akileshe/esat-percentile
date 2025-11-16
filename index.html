@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ESAT Percentile Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background: #eef0f5;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      background: #fff;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      max-width: 900px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      color: #555;
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid #eee;
+      font-size: 15px;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+    }
+
+    .percent {
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #eef2ff;
+      border-radius: 6px;
+      font-size: 13px;
+      border: 1px solid #c7d2fe;
+    }
+
+    .note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>ESAT Percentile Calculator</h1>
+    <div class="subtitle">Uses linear interpolation between published percentile anchor points for UK, Overseas, and China.</div>
+
+    <div class="row">
+      <div class="field">
+        <label>Module</label>
+        <select id="module">
+          <option value="maths1">Mathematics 1</option>
+          <option value="maths2">Mathematics 2</option>
+          <option value="biology">Biology</option>
+          <option value="chemistry">Chemistry</option>
+          <option value="physics">Physics</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Scaled Score (1.0 – 9.0)</label>
+        <input type="number" id="score" step="0.1" min="1" max="9" value="4.5">
+      </div>
+
+      <div class="field" style="align-self:flex-end;">
+        <button onclick="calculate()">Calculate</button>
+      </div>
+    </div>
+
+    <div id="results"></div>
+
+    <div class="note">
+      Percentiles are estimated by linear interpolation using ESAT Technical Report 2024–25 Tables 8 & 9.  
+      Extrapolation is used below 25th and above 90th percentile anchor points.
+    </div>
+  </div>
+
+  <script>
+    const data = {
+      maths1: {
+        UK: { p25: 3.1, p50: 3.9, p75: 4.8, p90: 5.6 },
+        Overseas: { p25: 4.0, p50: 5.1, p75: 6.4, p90: 8.0 },
+        China: { p25: 4.7, p50: 5.8, p75: 7.1, p90: 8.5 }
+      },
+      biology: {
+        UK: { p25: 3.6, p50: 4.5, p75: 5.4, p90: 7.0 },
+        Overseas: { p25: 3.6, p50: 4.9, p75: 5.9, p90: 7.0 },
+        China: { p25: 4.0, p50: 5.0, p75: 6.4, p90: 7.6 }
+      },
+      chemistry: {
+        UK: { p25: 3.4, p50: 4.4, p75: 5.2, p90: 6.2 },
+        Overseas: { p25: 3.8, p50: 4.9, p75: 6.4, p90: 7.6 },
+        China: { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.2 }
+      },
+      physics: {
+        UK: { p25: 3.2, p50: 4.1, p75: 5.0, p90: 6.0 },
+        Overseas: { p25: 3.8, p50: 4.9, p75: 6.2, p90: 7.5 },
+        China: { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.0 }
+      },
+      maths2: {
+        UK: { p25: 3.1, p50: 4.1, p75: 5.0, p90: 5.7 },
+        Overseas: { p25: 3.8, p50: 4.9, p75: 6.3, p90: 7.6 },
+        China: { p25: 4.5, p50: 5.6, p75: 6.8, p90: 8.2 }
+      }
+    };
+
+    function interp(score, group) {
+      const pts = [
+        { p: 25, s: group.p25 },
+        { p: 50, s: group.p50 },
+        { p: 75, s: group.p75 },
+        { p: 90, s: group.p90 }
+      ];
+
+      if (score <= pts[0].s) {
+        return Math.max(0, 25 * (score / pts[0].s));
+      }
+
+      for (let i = 0; i < pts.length - 1; i++) {
+        const low = pts[i];
+        const high = pts[i+1];
+        if (score >= low.s && score <= high.s) {
+          return low.p + (score - low.s) * (high.p - low.p) / (high.s - low.s);
+        }
+      }
+
+      const last = pts[pts.length - 1];
+      const slope = (100 - 90) / (10 - last.s);
+      return Math.min(100, 90 + (score - last.s) * slope);
+    }
+
+    function calculate() {
+      const moduleKey = document.getElementById("module").value;
+      const score = parseFloat(document.getElementById("score").value);
+      const groups = ["UK", "Overseas", "China"];
+      const moduleData = data[moduleKey];
+
+      let html = `
+        <h2>Results for score ${score.toFixed(1)}</h2>
+        <table>
+          <tr>
+            <th>Group</th>
+            <th>Estimated percentile</th>
+          </tr>
+      `;
+
+      groups.forEach(g => {
+        const p = interp(score, moduleData[g]);
+        html += `
+          <tr>
+            <td>${g}</td>
+            <td class="percent">${p.toFixed(1)}%</td>
+          </tr>
+        `;
+      });
+
+      html += "</table>";
+      document.getElementById("results").innerHTML = html;
+    }
+
+    calculate();
+  </script>
+
+</body>
+</html>
